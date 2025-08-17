@@ -1,10 +1,10 @@
 package xyz.aeolia.pwarp
 
-import kotlinx.serialization.json.Json
 import java.io.File
 import java.util.*
 
 class WarpPlayer private constructor(
+  @Suppress("unused")
   val uuid: UUID
 ) {
   private val _warps = mutableListOf<Warp>()
@@ -48,7 +48,7 @@ class WarpPlayer private constructor(
         warp.save()
       }
       if (checkLastAccess) {
-        if((System.currentTimeMillis() - players[uuid]!!.lastAccess) < (180 * 1000)) return
+        if ((System.currentTimeMillis() - players[uuid]!!.lastAccess) < (180 * 1000)) return
       }
       players.remove(uuid)
     }
@@ -63,12 +63,7 @@ class WarpPlayer private constructor(
         it.isFile && it.name.endsWith(".json")
       }
       list.forEach { file ->
-        val warp = try {
-          Json.decodeFromString<Warp>(file.readText())
-        } catch (e: Exception) {
-          e.printStackTrace()
-          return@forEach
-        }
+        val warp = Warp.load(uuid, file.nameWithoutExtension) ?: return wPlayer
         wPlayer.addWarp(warp)
       }
       return wPlayer

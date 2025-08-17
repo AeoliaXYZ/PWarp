@@ -2,3 +2,12 @@ name: PWarp
 version: '1.0-SNAPSHOT'
 main: xyz.aeolia.pwarp.PWarp
 api-version: '1.21'
+
+commands:
+  pwarp:
+    permission: pwarp.pwarp
+    usage: /<command> <player name/list/create/delete> <warp name/list>
+
+permissions:
+  pwarp.pwarp:
+    default: true
