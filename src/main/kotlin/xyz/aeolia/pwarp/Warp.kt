@@ -33,7 +33,7 @@ class Warp(
     player.teleport(location)
   }
 
-  fun save(plugin: JavaPlugin) {
+  fun save() {
     val ownerUUID = UserMapManager.getUuidFromName(name) ?: return
     val sep = File.separatorChar
     val file = File(plugin.dataFolder.path + "warps$sep$ownerUUID$sep", "$name.json")
@@ -44,7 +44,11 @@ class Warp(
   }
 
   companion object {
-    fun load(plugin: JavaPlugin, ownerUUID: UUID, name: String): Warp? {
+    val plugin by lazy {
+      PWarp.INSTANCE
+    }
+
+    fun load(ownerUUID: UUID, name: String): Warp? {
       val sep = File.separatorChar
       val file = File(plugin.dataFolder.path + "${sep}warps${sep}$ownerUUID${sep}", "$name.json")
 

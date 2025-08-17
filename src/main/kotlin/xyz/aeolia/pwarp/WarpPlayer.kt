@@ -22,15 +22,25 @@ class WarpPlayer(
 
   companion object {
     val players = mutableMapOf<UUID, WarpPlayer>()
-
-    fun loadPlayer(plugin: JavaPlugin, uuid: UUID): WarpPlayer {
-      if (players[uuid] != null) return players[uuid]!!
-      val player = fromFile(plugin, uuid)
-      players[uuid] = player
-      return player
+    val plugin by lazy {
+      PWarp.INSTANCE
     }
 
-    private fun fromFile(plugin: JavaPlugin, uuid: UUID): WarpPlayer {
+    fun loadPlayer(uuid: UUID): WarpPlayer {
+      if (players[uuid] != null) return players[uuid]!!
+      val player = fromFile(uuid)
+      return player.also { players[uuid] = it }
+    }
+
+    fun unloadPlayer(uuid: UUID) {
+      if (players[uuid] == null) return
+      players[uuid]!!.warps.forEach { warp ->
+        warp.save()
+      }
+      players.remove(uuid)
+    }
+
+    private fun fromFile(uuid: UUID): WarpPlayer {
       val wPlayer = WarpPlayer(uuid)
       val warpFolder = File(plugin.dataFolder.path + File.separatorChar + "warps", uuid.toString())
       if (!warpFolder.exists()) {
