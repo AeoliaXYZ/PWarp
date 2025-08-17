@@ -23,6 +23,18 @@
     val pitch: Float
   ) {
 
+    constructor(name: String,
+      owner: UUID,
+      location: Location) : this(
+        name,
+        owner,
+        location.world.name,
+        location.x,
+        location.y,
+        location.z,
+        location.yaw,
+        location.pitch
+    )
     private val file by lazy {
       File(plugin.dataFolder.path + "warps${File.separatorChar}$owner", "$name.json")
     }

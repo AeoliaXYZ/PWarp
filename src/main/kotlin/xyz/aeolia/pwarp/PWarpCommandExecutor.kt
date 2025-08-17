@@ -121,12 +121,7 @@ class PWarpCommandExecutor : TabExecutor {
           val warp = Warp(
             args[1],
             sender.uniqueId,
-            location.world.name,
-            location.x,
-            location.y,
-            location.z,
-            location.yaw,
-            location.pitch
+            location
           )
           warp.save()
           wPlayer.addWarp(warp)
