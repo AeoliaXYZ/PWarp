@@ -12,6 +12,7 @@ import xyz.aeolia.lib.player
 import xyz.aeolia.lib.sender.MessageSender
 import xyz.aeolia.lib.utils.Message
 import java.util.*
+import java.util.concurrent.CompletableFuture
 
 class PWarpCommandExecutor : TabExecutor {
   override fun onTabComplete(
@@ -65,7 +66,7 @@ class PWarpCommandExecutor : TabExecutor {
       return false
     }
 
-    if(args[0] == "create" || args[0] == "delete")
+    if (args[0] == "create" || args[0] == "delete")
       return true.also { manageHandler(sender, args) }
 
     val uuid = UserMapManager.getUuidFromName(args[0]) ?: run {
@@ -78,7 +79,7 @@ class PWarpCommandExecutor : TabExecutor {
       return true
     }
 
-    if(args[1] == "list") {
+    if (args[1] == "list") {
       MessageSender.sendMessage(sender, "${args[0]}'s warps:")
       sendAllWarps(sender, uuid)
       return true
@@ -96,53 +97,65 @@ class PWarpCommandExecutor : TabExecutor {
   }
 
   fun manageHandler(sender: Player, args: Array<out String>) {
-    val wPlayer = WarpPlayer.loadPlayer(sender.uniqueId)
-    when (args[0]) {
-      "create" -> {
-        wPlayer.warps.forEach { warp ->
-          if (args[1] == warp.name) {
-            MessageSender.sendMessage(sender, "You already have a warp by this name!")
-            return
+    CompletableFuture.supplyAsync {
+      val wPlayer = WarpPlayer.loadPlayer(sender.uniqueId)
+      when (args[0]) {
+        "create" -> {
+          wPlayer.warps.forEach { warp ->
+            if (args[1] == warp.name) {
+              MessageSender.sendMessage(sender, "You already have a warp by this name!")
+              return@forEach
+            }
           }
-        }
-        val location = sender.location
-        val warp = Warp(
-          args[1],
-          sender.uniqueId,
-          location.world.name,
-          location.x,
-          location.y,
-          location.z,
-          location.yaw,
-          location.pitch
-        )
-        warp.save()
-        wPlayer.addWarp(warp)
-        MessageSender.sendMessage(sender, "Warp created!")
-      }
 
-      "delete" -> {
-        var found: Warp? = null
-        wPlayer.warps.forEach { warp ->
-          if (args[1] == warp.name) {
-            found = warp
+          val maxWarps = WarpPlayer.maxWarps(sender)
+          if (maxWarps != 0) if (maxWarps >= wPlayer.warps.size) {
+            MessageSender.sendMessage(
+              sender, "You have reached your maximum number of warps." +
+                      " To create a new one, please delete one."
+            )
+            return@supplyAsync
           }
-        }
-        if (found == null) {
-          MessageSender.sendMessage(sender, "Warp not found!")
-          return
-        }
-        wPlayer.removeWarp(found)
-        found.delete()
-        MessageSender.sendMessage(sender, "Warp deleted.")
-      }
 
-      else -> {
-        MessageSender.sendMessage(sender, Message.Error.GENERIC)
-        PWarp.INSTANCE.logger.warning("Unexpected argument ${args[0]}, please check your build.")
+          val location = sender.location
+          val warp = Warp(
+            args[1],
+            sender.uniqueId,
+            location.world.name,
+            location.x,
+            location.y,
+            location.z,
+            location.yaw,
+            location.pitch
+          )
+          warp.save()
+          wPlayer.addWarp(warp)
+          MessageSender.sendMessage(sender, "Warp created!")
+        }
+
+        "delete" -> {
+          var found: Warp? = null
+          wPlayer.warps.forEach { warp ->
+            if (args[1] == warp.name) {
+              found = warp
+            }
+          }
+          if (found == null) {
+            MessageSender.sendMessage(sender, "Warp not found!")
+            return@supplyAsync
+          }
+          wPlayer.removeWarp(found)
+          found.delete()
+          MessageSender.sendMessage(sender, "Warp deleted.")
+        }
+
+        else -> {
+          MessageSender.sendMessage(sender, Message.Error.GENERIC)
+          PWarp.INSTANCE.logger.warning("Unexpected argument ${args[0]}, please check your build.")
+        }
       }
+      return@supplyAsync
     }
-    return
   }
 
   fun sendAllWarps(recipient: Audience, uuid: UUID) {

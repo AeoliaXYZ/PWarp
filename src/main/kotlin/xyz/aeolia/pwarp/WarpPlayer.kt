@@ -1,5 +1,6 @@
 package xyz.aeolia.pwarp
 
+import org.bukkit.entity.Player
 import java.io.File
 import java.util.*
 
@@ -67,6 +68,29 @@ class WarpPlayer private constructor(
         wPlayer.addWarp(warp)
       }
       return wPlayer
+    }
+
+
+    /*
+    Note to self. Please do not run this blocking. Please. Please. I beg you.
+     */
+    fun maxWarps(player: Player): Int {
+      var maxWarps = 1
+      if (player.hasPermission("pwarp.admin")) return 0
+
+      player.effectivePermissions.forEach { permission ->
+        val node = permission.permission
+        if (node.startsWith("pwarp.max.")) {
+          val value = node.removePrefix("pwarp.max.")
+          val nodeValue = try {
+            Integer.parseInt(value, 10)
+          } catch (_: NumberFormatException) {
+            return@forEach
+          }
+          if (nodeValue > maxWarps) maxWarps = nodeValue
+        }
+      }
+      return maxWarps
     }
   }
 }
