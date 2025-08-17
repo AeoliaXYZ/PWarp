@@ -60,13 +60,14 @@ class WarpPlayer private constructor(
       if (!warpFolder.exists()) {
         return wPlayer
       }
-      val list = (warpFolder.listFiles() ?: return wPlayer).filter {
-        it.isFile && it.name.endsWith(".json")
-      }
-      list.forEach { file ->
+
+      (warpFolder.listFiles() ?: return wPlayer)
+        .filter { it.isFile && it.name.endsWith(".json") }
+        .forEach { file ->
         val warp = Warp.load(uuid, file.nameWithoutExtension) ?: return wPlayer
         wPlayer.addWarp(warp)
       }
+
       return wPlayer
     }
 
