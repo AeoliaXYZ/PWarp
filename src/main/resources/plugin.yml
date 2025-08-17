@@ -1,0 +1,4 @@
+name: PWarp
+version: '1.0-SNAPSHOT'
+main: xyz.aeolia.pwarp.PWarp
+api-version: '1.21'
