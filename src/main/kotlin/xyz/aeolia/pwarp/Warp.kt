@@ -23,9 +23,8 @@
     val pitch: Float
   ) {
 
-    private val sep = File.separatorChar
     private val file by lazy {
-      File(plugin.dataFolder.path + "warps$sep$owner$sep", "$name.json")
+      File(plugin.dataFolder.path + "warps${File.separatorChar}$owner", "$name.json")
     }
 
     @Transient
