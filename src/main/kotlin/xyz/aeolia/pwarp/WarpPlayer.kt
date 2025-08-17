@@ -1,22 +1,32 @@
 package xyz.aeolia.pwarp
 
 import kotlinx.serialization.json.Json
-import org.bukkit.plugin.java.JavaPlugin
 import java.io.File
-import java.util.UUID
+import java.util.*
 
-class WarpPlayer(
+class WarpPlayer private constructor(
   val uuid: UUID
 ) {
   private val _warps = mutableListOf<Warp>()
   val warps: List<Warp>
-    get() = _warps
+    get() {
+      updateLastAccess()
+      return _warps
+    }
+
+  fun updateLastAccess() {
+    lastAccess = System.currentTimeMillis()
+  }
+
+  var lastAccess: Long = System.currentTimeMillis()
 
   fun addWarp(warp: Warp) {
+    updateLastAccess()
     _warps.add(warp)
   }
 
   fun removeWarp(warp: Warp) {
+    updateLastAccess()
     _warps.remove(warp)
   }
 
@@ -32,10 +42,13 @@ class WarpPlayer(
       return player.also { players[uuid] = it }
     }
 
-    fun unloadPlayer(uuid: UUID) {
+    fun unloadPlayer(uuid: UUID, checkLastAccess: Boolean = true) {
       if (players[uuid] == null) return
       players[uuid]!!.warps.forEach { warp ->
         warp.save()
+      }
+      if (checkLastAccess) {
+        if((System.currentTimeMillis() - players[uuid]!!.lastAccess) < (180 * 1000)) return
       }
       players.remove(uuid)
     }

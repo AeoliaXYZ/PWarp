@@ -6,6 +6,7 @@ class PWarp : JavaPlugin() {
 
   override fun onEnable() {
     INSTANCE = this
+    UnloadTask().runTaskTimer(this, 1200L, 1200L)
   }
 
   override fun onDisable() {
