@@ -76,22 +76,15 @@ class WarpPlayer private constructor(
     Note to self. Please do not run this blocking. Please. Please. I beg you.
      */
     fun maxWarps(player: Player): Int {
-      var maxWarps = 1
-      if (player.hasPermission("pwarp.admin")) return 0
-
-      player.effectivePermissions.forEach { permission ->
-        val node = permission.permission
-        if (node.startsWith("pwarp.max.")) {
-          val value = node.removePrefix("pwarp.max.")
-          val nodeValue = try {
-            Integer.parseInt(value, 10)
-          } catch (_: NumberFormatException) {
-            return@forEach
-          }
-          if (nodeValue > maxWarps) maxWarps = nodeValue
+      if (player.hasPermission("pwarp.admin")) return Int.MAX_VALUE
+      return player.effectivePermissions
+        .mapNotNull { perm ->
+          perm.permission.removePrefix("pwarp.max.").toIntOrNull()
+            .takeIf { perm.permission.startsWith("pwarp.max.") }
         }
-      }
-      return maxWarps
+        .maxOrNull()
+        ?.coerceAtLeast(1)
+        ?: 1
     }
   }
 }
