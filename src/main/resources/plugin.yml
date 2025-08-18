@@ -11,3 +11,7 @@ commands:
 permissions:
   pwarp.pwarp:
     default: true
+  pwarp.max.1:
+    default: true
+  pwarp.admin:
+    default: op
