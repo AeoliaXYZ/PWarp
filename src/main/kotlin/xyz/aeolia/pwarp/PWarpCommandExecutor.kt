@@ -109,7 +109,7 @@ class PWarpCommandExecutor : TabExecutor {
           }
 
           val maxWarps = WarpPlayer.maxWarps(sender)
-          if (maxWarps != 0) if (maxWarps >= wPlayer.warps.size) {
+          if (maxWarps >= wPlayer.warps.size) {
             MessageSender.sendMessage(
               sender, "You have reached your maximum number of warps." +
                       " To create a new one, please delete one."
