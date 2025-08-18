@@ -40,10 +40,6 @@ kotlin {
   jvmToolchain(targetJavaVersion)
 }
 
-tasks.jar {
-  dependsOn("shadowJar")
-}
-
 tasks.build {
   dependsOn("shadowJar")
 }
