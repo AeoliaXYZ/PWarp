@@ -85,13 +85,12 @@ class PWarpCommandExecutor : TabExecutor {
       return true
     }
 
-    wPlayer.warps.forEach { warp ->
-      if (args[1] == warp.name) {
-        MessageSender.sendMessage(sender, "Teleporting...")
-        warp.teleport(sender)
-        return true
-      }
+    wPlayer.warps.find { it.name == args[1] }?.let {
+      MessageSender.sendMessage(sender, "Teleporting...")
+      it.teleport(sender)
+      return true
     }
+
     MessageSender.sendMessage(sender, "Warp not found.")
     return true
   }
@@ -99,57 +98,40 @@ class PWarpCommandExecutor : TabExecutor {
   fun manageHandler(sender: Player, args: Array<out String>) {
     CompletableFuture.supplyAsync {
       val wPlayer = WarpPlayer.loadPlayer(sender.uniqueId)
+      val maxWarps = WarpPlayer.maxWarps(sender)
+      val location = sender.location.clone()
       when (args[0]) {
         "create" -> {
-          wPlayer.warps.forEach { warp ->
-            if (args[1] == warp.name) {
-              MessageSender.sendMessage(sender, "You already have a warp by this name!")
-              return@forEach
-            }
+          if (wPlayer.warps.any { it.name == args[1] }) {
+            return@supplyAsync "You already have a warp by that name!"
           }
 
-          val maxWarps = WarpPlayer.maxWarps(sender)
-          if (maxWarps >= wPlayer.warps.size) {
-            MessageSender.sendMessage(
-              sender, "You have reached your maximum number of warps." +
-                      " To create a new one, please delete one."
-            )
-            return@supplyAsync
+          if (wPlayer.warps.size >= maxWarps) {
+            return@supplyAsync "You have reached your maximum number of warps."
           }
 
-          val location = sender.location
-          val warp = Warp(
-            args[1],
-            sender.uniqueId,
-            location
-          )
+          val warp = Warp(args[1], sender.uniqueId, location)
           warp.save()
           wPlayer.addWarp(warp)
-          MessageSender.sendMessage(sender, "Warp created!")
+          return@supplyAsync "Warp created!"
         }
 
         "delete" -> {
-          var found: Warp? = null
-          wPlayer.warps.forEach { warp ->
-            if (args[1] == warp.name) {
-              found = warp
-            }
-          }
-          if (found == null) {
-            MessageSender.sendMessage(sender, "Warp not found!")
-            return@supplyAsync
-          }
+          val found = wPlayer.warps.find { it.name == args[1] } ?: return@supplyAsync "Warp not found!"
           wPlayer.removeWarp(found)
           found.delete()
-          MessageSender.sendMessage(sender, "Warp deleted.")
+          return@supplyAsync "Warp deleted."
         }
 
         else -> {
-          MessageSender.sendMessage(sender, Message.Error.GENERIC)
           PWarp.INSTANCE.logger.warning("Unexpected argument ${args[0]}, please check your build.")
+          return@supplyAsync Message.Error.GENERIC
         }
       }
-      return@supplyAsync
+    }.thenAccept { message ->
+      Bukkit.getScheduler().runTask(PWarp.INSTANCE, Runnable {
+        MessageSender.sendMessage(sender, message)
+      })
     }
   }
 
