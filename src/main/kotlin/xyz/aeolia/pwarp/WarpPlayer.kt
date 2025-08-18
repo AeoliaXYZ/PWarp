@@ -45,12 +45,8 @@ class WarpPlayer private constructor(
 
     fun unloadPlayer(uuid: UUID, checkLastAccess: Boolean = true) {
       if (players[uuid] == null) return
-      players[uuid]!!.warps.forEach { warp ->
-        warp.save()
-      }
-      if (checkLastAccess) {
-        if ((System.currentTimeMillis() - players[uuid]!!.lastAccess) < (180 * 1000)) return
-      }
+      if (checkLastAccess) if ((System.currentTimeMillis() - players[uuid]!!.lastAccess) < (180 * 1000)) return
+      players[uuid]!!.warps.forEach { warp -> warp.save() }
       players.remove(uuid)
     }
 
@@ -61,20 +57,15 @@ class WarpPlayer private constructor(
         return wPlayer
       }
 
-      (warpFolder.listFiles() ?: return wPlayer)
-        .filter { it.isFile && it.name.endsWith(".json") }
-        .forEach { file ->
-          val warp = Warp.load(uuid, file.nameWithoutExtension) ?: return wPlayer
-          wPlayer.addWarp(warp)
+      warpFolder.listFiles()
+        ?.filter { it.isFile && it.name.endsWith(".json") }
+        ?.forEach { file ->
+          Warp.load(uuid, file.nameWithoutExtension)?.let { wPlayer.addWarp(it) }
         }
 
       return wPlayer
     }
 
-
-    /*
-    Note to self. Please do not run this blocking. Please. Please. I beg you.
-     */
     fun maxWarps(player: Player): Int {
       if (player.hasPermission("pwarp.admin")) return Int.MAX_VALUE
       return player.effectivePermissions
