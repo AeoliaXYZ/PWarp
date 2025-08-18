@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "xyz.aeolia"
-version = "1.0-SNAPSHOT"
+version = "1.0"
 
 repositories {
   mavenCentral()
@@ -20,7 +20,7 @@ repositories {
 
 dependencies {
   compileOnly("io.papermc.paper:paper-api:1.21-R0.1-SNAPSHOT")
-  compileOnly("xyz.aeolia:lib:2.1.7")
+  compileOnly("xyz.aeolia:lib:2.1.9")
   compileOnly("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
   compileOnly("org.jetbrains.kotlinx:kotlinx-serialization-core:1.9.0")
   compileOnly("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
@@ -55,9 +55,4 @@ tasks.processResources {
   filesMatching("plugin.yml") {
     expand(props)
   }
-}
-
-tasks.shadowJar {
-  relocate("kotlinx", "xyz.aeolia.lib.shade.kotlinx")
-  relocate("kotlin", "xyz.aeolia.lib.shade.kotlin")
 }
