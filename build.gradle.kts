@@ -40,6 +40,10 @@ kotlin {
   jvmToolchain(targetJavaVersion)
 }
 
+tasks.jar {
+  dependsOn("shadowJar")
+}
+
 tasks.build {
   dependsOn("shadowJar")
 }
@@ -54,5 +58,6 @@ tasks.processResources {
 }
 
 tasks.shadowJar {
-  relocate("kotlinx.serialization", "xyz.aeolia.lib.shade.kotlinx.serialization")
+  relocate("kotlinx", "xyz.aeolia.lib.shade.kotlinx")
+  relocate("kotlin", "xyz.aeolia.lib.shade.kotlin")
 }

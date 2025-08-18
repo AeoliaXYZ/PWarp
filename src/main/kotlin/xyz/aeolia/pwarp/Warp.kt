@@ -36,7 +36,7 @@
         location.pitch
     )
     private val file by lazy {
-      File(plugin.dataFolder.path + "warps${File.separatorChar}$owner", "$name.json")
+      File(plugin.dataFolder.path + "${File.separatorChar}warps${File.separatorChar}$owner", "$name.json")
     }
 
     @Transient
