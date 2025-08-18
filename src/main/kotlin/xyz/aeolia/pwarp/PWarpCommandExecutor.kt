@@ -10,6 +10,7 @@ import org.bukkit.util.StringUtil
 import xyz.aeolia.lib.manager.UserMapManager
 import xyz.aeolia.lib.player
 import xyz.aeolia.lib.sender.MessageSender
+import xyz.aeolia.lib.task.MessageLaterTask
 import xyz.aeolia.lib.utils.Message
 import java.util.*
 import java.util.concurrent.CompletableFuture
@@ -32,12 +33,21 @@ class PWarpCommandExecutor : TabExecutor {
         StringUtil.copyPartialMatches<MutableList<String>>(args[0], commands, completions)
       }
     } else if (args.size == 2) {
-      val uuid = UserMapManager.getUuidFromName(args[0]) ?: return completions
-      val wPlayer = WarpPlayer.loadPlayer(uuid)
-      wPlayer.warps.forEach {
-        commands.add(it.name)
+      if (args[0] !in listOf("create", "delete", "list")) {
+        val uuid = UserMapManager.getUuidFromName(args[0]) ?: return completions
+        val wPlayer = WarpPlayer.loadPlayer(uuid)
+        wPlayer.warps.forEach {
+          commands.add(it.name)
+        }
+        commands.add("list")
+      } else if (args[0] == "delete") {
+        sender.player()?.uniqueId?.let {
+          val wPlayer = WarpPlayer.loadPlayer(it)
+          wPlayer.warps.forEach { warp ->
+            commands.add(warp.name)
+          }
+        }
       }
-      commands.add("list")
       StringUtil.copyPartialMatches<MutableList<String>>(args[1], commands, completions)
     }
     completions.sort()
@@ -129,9 +139,11 @@ class PWarpCommandExecutor : TabExecutor {
         }
       }
     }.thenAccept { message ->
-      Bukkit.getScheduler().runTask(PWarp.INSTANCE, Runnable {
-        MessageSender.sendMessage(sender, message)
-      })
+        MessageLaterTask(sender, message).run()
+    }.exceptionally { e ->
+      e.printStackTrace()
+      MessageLaterTask(sender, Message.Error.GENERIC).run()
+      return@exceptionally null
     }
   }
 
